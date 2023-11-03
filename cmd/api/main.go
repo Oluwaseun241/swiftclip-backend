@@ -11,7 +11,7 @@ func main() {
   app := fiber.New()
 
   // database connection
-  db.Init()
+  db.InitDatabase()
 
   err := app.Listen(":3000")
   if err != nil {

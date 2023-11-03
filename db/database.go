@@ -1,18 +1,18 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
 	"os"
 
+	"github.com/Oluwaseun241/swiftclip-backend/models"
 	"github.com/joho/godotenv"
-	"github.com/uptrace/bun"
-  "github.com/uptrace/bun/dialect/pgdialect"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-var Bun *bun.DB
+var DB *gorm.DB
 
-func CreateDatabase() (*sql.DB, error) {
+func InitDatabase() {
   godotenv.Load()
   var (
     dbname = os.Getenv("DB_NAME")
@@ -21,21 +21,14 @@ func CreateDatabase() (*sql.DB, error) {
     dbhost = os.Getenv("DB_HOST")
     uri = fmt.Sprintf("user=%s dbname=%s password=%s host=%s port=5432", dbuser, dbname, dbpassword, dbhost)
   )
-  db, err := sql.Open("postgres", uri)
+  
+  db, err := gorm.Open(postgres.Open(uri), &gorm.Config{})
+  if err != nil {
+    panic("Failed to connect to DB")
+  }
   fmt.Printf("DB connected")
-  if err != nil {
-    return nil, err
-  }
-  return db, nil
-}
 
-func Init() error {
-  db, err := CreateDatabase()
-  if err != nil {
-    return err
-  }
-
-  Bun = bun.NewDB(db, pgdialect.New())
-
-  return nil
+  DB = db
+  db.AutoMigrate(&models.User{})
+  fmt.Printf("DB migrated")
 }
